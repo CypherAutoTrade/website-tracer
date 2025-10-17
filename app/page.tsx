@@ -142,22 +142,13 @@ export default function Home() {
         setAnalysisError(""); // エラーをクリア
 
         // 履歴に保存
-        console.log("Adding to history:", {
-          url: `📁 ${fileName}`,
-          htmlLength: htmlContent.length,
-          cssLength: cssContent.length
-        });
-
-        const historyId = addToHistory({
+        addToHistory({
           url: `📁 ${fileName}`,
           templateHtml: htmlContent,
           templateCss: cssContent,
           userHtml: "",
           userCss: "",
         });
-
-        console.log("History ID:", historyId);
-        console.log("Current history length:", history.length);
 
         // 成功アニメーション
         if (editorRef.current) {
@@ -411,13 +402,15 @@ export default function Home() {
             </div>
 
             {/* HISTORY */}
-            <div className="h-[100px] border-t border-zinc-200 pt-4">
-              <History
-                history={history}
-                onRestore={restoreFromHistory}
-                onDelete={removeFromHistory}
-                onClear={clearHistory}
-              />
+            <div className="border-t border-zinc-200 pt-4">
+              <div className="h-[200px]">
+                <History
+                  history={history}
+                  onRestore={restoreFromHistory}
+                  onDelete={removeFromHistory}
+                  onClear={clearHistory}
+                />
+              </div>
             </div>
           </div>
         </Card>
@@ -425,7 +418,7 @@ export default function Home() {
         {/* エディタ & プレビュー 統合カード - 大画面表示 */}
         <Card
           ref={editorRef}
-          className="h-[calc(100vh-200px)] min-h-[700px] overflow-hidden bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
+          className="h-[calc(100vh-380px)] min-h-[600px] overflow-hidden bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
         >
           <div className="grid lg:grid-cols-2 gap-0 h-full">
             {/* 左側: コードエディタ (HTML & CSS) */}

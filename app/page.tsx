@@ -7,7 +7,7 @@ import { History } from "@/components/History";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ExternalLink, Code2, Terminal, Zap } from "lucide-react";
+import { Loader2, ExternalLink, Code2, Terminal, Zap, Upload } from "lucide-react";
 import { gsap } from "gsap";
 import { useHistory, HistoryItem } from "@/hooks/useHistory";
 
@@ -26,6 +26,7 @@ export default function Home() {
   const urlCardRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // 背景アニメーションエフェクト
@@ -97,6 +98,74 @@ export default function Home() {
       );
     }
   }, []);
+
+  // ファイル読み込み処理
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      let htmlContent = "";
+      let cssContent = "";
+      let fileName = "";
+
+      // HTMLファイルとCSSファイルを読み込む
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const content = await file.text();
+
+        if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+          htmlContent = content;
+          fileName = file.name;
+
+          // HTMLからCSSを抽出
+          const styleMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          if (styleMatch) {
+            cssContent = styleMatch[1].trim();
+            htmlContent = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+          }
+        } else if (file.name.endsWith('.css')) {
+          cssContent = content;
+          if (!fileName) fileName = file.name;
+        }
+      }
+
+      if (htmlContent || cssContent) {
+        setTemplateHtml(htmlContent);
+        setTemplateCss(cssContent);
+        setHtmlCode("");
+        setCssCode("");
+
+        // 履歴に保存
+        addToHistory({
+          url: `📁 ${fileName || 'Uploaded File'}`,
+          templateHtml: htmlContent,
+          templateCss: cssContent,
+          userHtml: "",
+          userCss: "",
+        });
+
+        // 成功アニメーション
+        if (editorRef.current) {
+          gsap.fromTo(
+            editorRef.current,
+            { scale: 0.95, opacity: 0.5 },
+            { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }
+          );
+        }
+      } else {
+        setAnalysisError("HTMLまたはCSSファイルを選択してください");
+      }
+    } catch (error) {
+      setAnalysisError("ファイルの読み込みに失敗しました");
+      console.error(error);
+    }
+
+    // ファイル入力をリセット
+    if (event.target) {
+      event.target.value = "";
+    }
+  };
 
   const analyzeUrl = async () => {
     if (!customUrl) {
@@ -298,6 +367,26 @@ export default function Home() {
                     </>
                   )}
                 </Button>
+
+                {/* ファイルアップロードボタン */}
+                <div className="relative">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".html,.htm,.css"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    className="border-2 border-zinc-200 hover:border-black font-bold px-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    FILE
+                  </Button>
+                </div>
               </div>
 
               {analysisError && (

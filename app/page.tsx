@@ -257,62 +257,65 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="max-w-full mx-auto p-4 relative z-10">
-        {/* AI ANALYZER - 1行目 */}
+        {/* AI ANALYZER & HISTORY 統合カード */}
         <Card
           ref={urlCardRef}
-          className="mb-3 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
+          className="mb-4 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-5 h-5 text-black animate-pulse" />
-            <h2 className="text-lg font-black tracking-tight">
-              AI WEBSITE ANALYZER
-            </h2>
-          </div>
+          <div className="space-y-4">
+            {/* AI ANALYZER */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-5 h-5 text-black animate-pulse" />
+                <h2 className="text-lg font-black tracking-tight">
+                  AI WEBSITE ANALYZER
+                </h2>
+              </div>
 
-          <div className="flex gap-3 flex-wrap">
-            <input
-              type="url"
-              value={customUrl}
-              onChange={(e) => setCustomUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="flex-1 min-w-[250px] px-3 py-2 bg-white border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-black transition-all text-black placeholder:text-zinc-400 font-mono text-sm"
-              disabled={isAnalyzing}
-            />
-            <Button
-              onClick={analyzeUrl}
-              disabled={isAnalyzing}
-              className="bg-black text-white hover:bg-zinc-800 font-bold px-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ANALYZING...
-                </>
-              ) : (
-                <>
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  ANALYZE
-                </>
+              <div className="flex gap-3 flex-wrap">
+                <input
+                  type="url"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="flex-1 min-w-[250px] px-3 py-2 bg-white border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-black transition-all text-black placeholder:text-zinc-400 font-mono text-sm"
+                  disabled={isAnalyzing}
+                />
+                <Button
+                  onClick={analyzeUrl}
+                  disabled={isAnalyzing}
+                  className="bg-black text-white hover:bg-zinc-800 font-bold px-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ANALYZING...
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      ANALYZE
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {analysisError && (
+                <div className="bg-red-50 border-2 border-red-300 text-red-700 p-2 rounded-lg text-xs font-mono animate-pulse mt-3">
+                  ERROR: {analysisError}
+                </div>
               )}
-            </Button>
-          </div>
-
-          {analysisError && (
-            <div className="bg-red-50 border-2 border-red-300 text-red-700 p-2 rounded-lg text-xs font-mono animate-pulse mt-3">
-              ERROR: {analysisError}
             </div>
-          )}
-        </Card>
 
-        {/* HISTORY - 2行目 */}
-        <Card className="mb-4 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300">
-          <div className="h-[100px]">
-            <History
-              history={history}
-              onRestore={restoreFromHistory}
-              onDelete={removeFromHistory}
-              onClear={clearHistory}
-            />
+            {/* HISTORY */}
+            <div className="h-[100px] border-t border-zinc-200 pt-4">
+              <History
+                history={history}
+                onRestore={restoreFromHistory}
+                onDelete={removeFromHistory}
+                onClear={clearHistory}
+              />
+            </div>
           </div>
         </Card>
 

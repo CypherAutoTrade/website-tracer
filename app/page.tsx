@@ -23,7 +23,6 @@ export default function Home() {
   const { history, addToHistory, removeFromHistory, clearHistory } = useHistory();
 
   const headerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const urlCardRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -257,80 +256,70 @@ export default function Home() {
       </header>
 
       {/* メインコンテンツ */}
-      <div className="max-w-screen-2xl mx-auto p-6 relative z-10">
-        {/* AI ANALYZER & HISTORY 統合カード */}
+      <div className="max-w-full mx-auto p-4 relative z-10">
+        {/* AI ANALYZER - 1行目 */}
         <Card
           ref={urlCardRef}
-          className="mb-6 p-6 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
+          className="mb-3 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
         >
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* AI ANALYZER */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Zap className="w-6 h-6 text-black animate-pulse" />
-                <h2 className="text-xl font-black tracking-tight">
-                  AI WEBSITE ANALYZER
-                </h2>
-              </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-5 h-5 text-black animate-pulse" />
+            <h2 className="text-lg font-black tracking-tight">
+              AI WEBSITE ANALYZER
+            </h2>
+          </div>
 
-              <div className="flex gap-3 flex-wrap">
-                <input
-                  type="url"
-                  value={customUrl}
-                  onChange={(e) => setCustomUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  className="flex-1 min-w-[250px] px-4 py-3 bg-white border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-black transition-all text-black placeholder:text-zinc-400 font-mono"
-                  disabled={isAnalyzing}
-                />
-                <Button
-                  onClick={analyzeUrl}
-                  disabled={isAnalyzing}
-                  size="lg"
-                  className="bg-black text-white hover:bg-zinc-800 font-bold px-8 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ANALYZING...
-                    </>
-                  ) : (
-                    <>
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      ANALYZE
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {analysisError && (
-                <div className="bg-red-50 border-2 border-red-300 text-red-700 p-3 rounded-lg text-sm font-mono animate-pulse">
-                  ERROR: {analysisError}
-                </div>
+          <div className="flex gap-3 flex-wrap">
+            <input
+              type="url"
+              value={customUrl}
+              onChange={(e) => setCustomUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="flex-1 min-w-[250px] px-3 py-2 bg-white border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-black transition-all text-black placeholder:text-zinc-400 font-mono text-sm"
+              disabled={isAnalyzing}
+            />
+            <Button
+              onClick={analyzeUrl}
+              disabled={isAnalyzing}
+              className="bg-black text-white hover:bg-zinc-800 font-bold px-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ANALYZING...
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  ANALYZE
+                </>
               )}
+            </Button>
+          </div>
 
-              <div className="bg-zinc-100 p-4 rounded-lg border border-zinc-200">
-                <p className="text-sm text-zinc-600 leading-relaxed font-mono">
-                  <span className="text-black font-bold">&gt; INFO:</span> Enter any website URL. AI will analyze the HTML/CSS.
-                </p>
-              </div>
+          {analysisError && (
+            <div className="bg-red-50 border-2 border-red-300 text-red-700 p-2 rounded-lg text-xs font-mono animate-pulse mt-3">
+              ERROR: {analysisError}
             </div>
+          )}
+        </Card>
 
-            {/* HISTORY */}
-            <div className="h-[250px]">
-              <History
-                history={history}
-                onRestore={restoreFromHistory}
-                onDelete={removeFromHistory}
-                onClear={clearHistory}
-              />
-            </div>
+        {/* HISTORY - 2行目 */}
+        <Card className="mb-4 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300">
+          <div className="h-[100px]">
+            <History
+              history={history}
+              onRestore={restoreFromHistory}
+              onDelete={removeFromHistory}
+              onClear={clearHistory}
+            />
           </div>
         </Card>
 
-        {/* エディタ & プレビュー 統合カード */}
+        {/* エディタ & プレビュー 統合カード - 大画面表示 */}
         <Card
           ref={editorRef}
-          className="h-[calc(100vh-580px)] min-h-[500px] overflow-hidden bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
+          className="h-[calc(100vh-200px)] min-h-[700px] overflow-hidden bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-2xl hover:border-zinc-300 transition-all duration-300"
         >
           <div className="grid lg:grid-cols-2 gap-0 h-full">
             {/* 左側: コードエディタ (HTML & CSS) */}
@@ -402,20 +391,6 @@ export default function Home() {
                 </TabsContent>
               </Tabs>
             </div>
-          </div>
-        </Card>
-
-        {/* ステータスバー */}
-        <Card className="mt-6 p-4 bg-white/80 backdrop-blur-xl border border-zinc-200">
-          <div className="flex items-center gap-4 text-sm font-mono">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-zinc-600">SYSTEM READY</span>
-            </div>
-            <div className="text-zinc-300">|</div>
-            <span className="text-zinc-500">
-              Edit HTML & CSS tabs • Compare TEMPLATE vs YOUR CODE • Real-time preview
-            </span>
           </div>
         </Card>
       </div>

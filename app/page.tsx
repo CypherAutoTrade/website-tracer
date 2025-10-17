@@ -142,13 +142,22 @@ export default function Home() {
         setAnalysisError(""); // エラーをクリア
 
         // 履歴に保存
-        addToHistory({
+        console.log("Adding to history:", {
+          url: `📁 ${fileName}`,
+          htmlLength: htmlContent.length,
+          cssLength: cssContent.length
+        });
+
+        const historyId = addToHistory({
           url: `📁 ${fileName}`,
           templateHtml: htmlContent,
           templateCss: cssContent,
           userHtml: "",
           userCss: "",
         });
+
+        console.log("History ID:", historyId);
+        console.log("Current history length:", history.length);
 
         // 成功アニメーション
         if (editorRef.current) {

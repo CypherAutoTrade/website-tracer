@@ -48,54 +48,56 @@ export function History({ history, onRestore, onDelete, onClear }: HistoryProps)
         )}
       </div>
 
-      <ScrollArea className="h-[calc(100%-60px)]">
-        {history.length === 0 ? (
-          <div className="p-8 text-center text-zinc-400">
-            <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-mono">No history yet</p>
-            <p className="text-xs mt-1">Analyze a website to start</p>
-          </div>
-        ) : (
-          <div className="p-3 space-y-2">
-            {history.map((item) => (
-              <Card
-                key={item.id}
-                className="p-3 hover:bg-zinc-50 transition-all cursor-pointer border border-zinc-200 hover:border-zinc-300"
-                onClick={() => onRestore(item)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-mono font-semibold truncate">
-                      {item.url}
-                    </p>
-                    <p className="text-xs text-zinc-500 font-mono mt-1">
-                      {formatDate(item.timestamp)}
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-xs bg-zinc-100 px-2 py-1 rounded font-mono">
-                        HTML: {item.templateHtml.length}
-                      </span>
-                      <span className="text-xs bg-zinc-100 px-2 py-1 rounded font-mono">
-                        CSS: {item.templateCss.length}
-                      </span>
+      <ScrollArea className="h-[calc(100%-60px)] [&>[data-radix-scroll-area-viewport]]:max-h-full">
+        <div className="[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-zinc-100 [&::-webkit-scrollbar-thumb]:bg-zinc-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-zinc-500">
+          {history.length === 0 ? (
+            <div className="p-8 text-center text-zinc-400">
+              <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-mono">No history yet</p>
+              <p className="text-xs mt-1">Analyze a website to start</p>
+            </div>
+          ) : (
+            <div className="p-3 space-y-2">
+              {history.map((item) => (
+                <Card
+                  key={item.id}
+                  className="p-3 hover:bg-zinc-50 transition-all cursor-pointer border border-zinc-200 hover:border-zinc-300"
+                  onClick={() => onRestore(item)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-mono font-semibold truncate">
+                        {item.url}
+                      </p>
+                      <p className="text-xs text-zinc-500 font-mono mt-1">
+                        {formatDate(item.timestamp)}
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-xs bg-zinc-100 px-2 py-1 rounded font-mono">
+                          HTML: {item.templateHtml.length}
+                        </span>
+                        <span className="text-xs bg-zinc-100 px-2 py-1 rounded font-mono">
+                          CSS: {item.templateCss.length}
+                        </span>
+                      </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item.id);
+                      }}
+                      className="hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(item.id);
-                    }}
-                    className="hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </ScrollArea>
     </Card>
   );

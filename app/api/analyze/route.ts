@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 import crypto from "crypto";
+import puppeteer from "puppeteer";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -86,28 +87,49 @@ export async function POST(request: NextRequest) {
     // セッションIDを生成
     const sessionId = Date.now().toString();
 
-    // URLからHTMLを取得
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
+    // Puppeteerでスクリーンショットを撮る
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    const html = await response.text();
 
-    // Claude APIでHTMLを分析して詳細なHTML/CSSを生成
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 1024 });
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
+
+    // スクリーンショットをBase64で取得
+    const screenshot = await page.screenshot({
+      encoding: 'base64',
+      fullPage: true
+    });
+
+    await browser.close();
+
+    // Claude Vision APIでスクリーンショットを分析してHTML/CSSを生成
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 8192,
       messages: [
         {
           role: "user",
-          content: `あなたはプロフェッショナルなフロントエンドエンジニアです。以下のWebページのHTMLを分析して、**元のページを視覚的に忠実に再現した**学習用のHTML/CSSコードを作成してください。
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: screenshot,
+              },
+            },
+            {
+              type: "text",
+              text: `このWebページのスクリーンショットを見て、**完全に忠実に再現した**学習用のHTML/CSSコードを作成してください。
 
 【最重要ルール】
-- 元のページの構造・レイアウト・デザインを**そのまま再現**する
-- 存在しないセクションやコンテンツを勝手に追加しない
-- シンプルなページはシンプルに、複雑なページは複雑に再現する
-- 元のページの見た目と雰囲気を完全にコピーする
+- スクリーンショットの見た目を**ピクセル単位で正確に**再現する
+- レイアウト、配色、タイポグラフィ、余白をすべて同じにする
+- 存在しない要素を追加しない
+- テキストはスクリーンショットから読み取って正確に記述する
 
 【絶対守るべき要件】
 1. 完全なHTML5構造を記述:
@@ -116,39 +138,21 @@ export async function POST(request: NextRequest) {
    <head>
      <meta charset="UTF-8">
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>元のタイトル</title>
+     <title>ページタイトル</title>
      <style>...</style>
    </head>
-   <body>元のコンテンツをそのまま再現</body>
+   <body>...</body>
    </html>
 
 2. CSSは<style>タグ内に**すべて**記述（外部CSSは使用しない）
 
-3. 元のページにある要素だけを含める:
-   - 元のHTMLを解析して、実際に存在する要素だけを再現
-   - ヘッダー、ナビ、フッターなどは元のページにあれば含める
-   - なければ含めない
+3. 画像は <img src="https://via.placeholder.com/幅x高さ" alt="説明"> で代替
 
-4. スタイリングを元のページから忠実に再現:
-   - レイアウト（元のページと同じ配置）
-   - 配色（背景、テキスト、ボーダーなど元と同じ色）
-   - タイポグラフィ（font-family、サイズ、太さ、行間）
-   - 余白（margin、padding）
-   - 装飾（border-radius、box-shadow、border）
+4. スクリーンショットと同じ配色・レイアウトを再現
 
-5. 画像は<img>タグで元のURLをsrc属性に設定:
-   例: <img src="https://..." alt="...">
-
-6. 元のページのテキストコンテンツをそのまま使用
-
-7. 日本語でコメントを追加（簡潔に）
-
-8. HTMLとCSSのコードのみを返す（説明文は不要、マークダウン記号も不要）
-
-9. 元のページがシンプルなら、シンプルなコードを生成する
-
-分析対象のHTML:
-${html.substring(0, 20000)}`,
+5. HTMLとCSSのコードのみを返す（説明文は不要、マークダウン記号も不要）`,
+            },
+          ],
         },
       ],
     });
@@ -163,37 +167,14 @@ ${html.substring(0, 20000)}`,
       .replace(/```\s*$/m, '')
       .trim();
 
-    // 生成されたコードから画像URLを抽出
-    const imageUrls = extractImageUrls(generatedCode, url);
-    console.log(`Found ${imageUrls.length} images to download`);
-
-    // 画像をダウンロードしてURLマッピングを作成
-    const imageMapping: { [key: string]: string } = {};
-
-    // 最大10枚の画像をダウンロード（多すぎる場合は制限）
-    const imagesToDownload = imageUrls.slice(0, 10);
-
-    await Promise.all(
-      imagesToDownload.map(async (imageUrl) => {
-        const localUrl = await downloadAndSaveImage(imageUrl, sessionId);
-        if (localUrl) {
-          imageMapping[imageUrl] = localUrl;
-          console.log(`Downloaded: ${imageUrl} -> ${localUrl}`);
-        }
-      })
-    );
-
-    // HTMLコード内の画像URLをローカルURLに置き換え
-    Object.entries(imageMapping).forEach(([originalUrl, localUrl]) => {
-      generatedCode = generatedCode.replace(new RegExp(originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), localUrl);
-    });
-
-    console.log(`Successfully downloaded and replaced ${Object.keys(imageMapping).length} images`);
+    // スクリーンショットベースなので画像はプレースホルダーを使用
+    // 画像ダウンロードは不要
+    console.log(`Generated HTML from screenshot`);
 
     return NextResponse.json({
       html: generatedCode,
       success: true,
-      imagesDownloaded: Object.keys(imageMapping).length,
+      imagesDownloaded: 0,
     });
   } catch (error) {
     console.error("Error analyzing URL:", error);

@@ -105,9 +105,10 @@ export default function Home() {
     if (!files || files.length === 0) return;
 
     try {
-      let htmlContent = "";
-      let cssContent = "";
+      let htmlContent = templateHtml || ""; // 既存のHTMLを保持（初期値は空文字列）
+      let cssContent = templateCss || "";   // 既存のCSSを保持（初期値は空文字列）
       let fileName = "";
+      let fileNames: string[] = [];
 
       // HTMLファイルとCSSファイルを読み込む
       for (let i = 0; i < files.length; i++) {
@@ -116,7 +117,7 @@ export default function Home() {
 
         if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
           htmlContent = content;
-          fileName = file.name;
+          fileNames.push(file.name);
 
           // HTMLからCSSを抽出
           const styleMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
@@ -126,19 +127,23 @@ export default function Home() {
           }
         } else if (file.name.endsWith('.css')) {
           cssContent = content;
-          if (!fileName) fileName = file.name;
+          fileNames.push(file.name);
         }
       }
+
+      // ファイル名を決定
+      fileName = fileNames.join(' + ') || 'Uploaded File';
 
       if (htmlContent || cssContent) {
         setTemplateHtml(htmlContent);
         setTemplateCss(cssContent);
         setHtmlCode("");
         setCssCode("");
+        setAnalysisError(""); // エラーをクリア
 
         // 履歴に保存
         addToHistory({
-          url: `📁 ${fileName || 'Uploaded File'}`,
+          url: `📁 ${fileName}`,
           templateHtml: htmlContent,
           templateCss: cssContent,
           userHtml: "",
